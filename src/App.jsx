@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import Todo from './components/ToDo';
+import Todo from './components/todo/ToDo';
 
 function App() {
   return(

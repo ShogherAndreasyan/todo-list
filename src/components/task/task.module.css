@@ -1,0 +1,18 @@
+.deleteButton{
+    margin-left: 8px;
+}
+
+.actionButtons{
+    display: flex;
+    justify-content: end;
+}
+
+.selectTask{
+    width: 18px;
+    height: 18px;
+    margin-bottom: 5px;
+}
+
+.selectTask input{
+    cursor: pointer;
+}
