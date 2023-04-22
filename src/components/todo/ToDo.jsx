@@ -1,21 +1,17 @@
 import { Component } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  InputGroup,
-  Form,
-  Button,
-} from "react-bootstrap";
+import { Container, Row, Col, InputGroup, Form, Button } from "react-bootstrap";
 import { idGenerator } from "../../utils/helpers";
 import Task from "../task/Task";
 import styles from "./todo.module.css";
+import ConfirmDialog from "../ConfirmDialog";
+// import Counter from "../lesson67";
 
 class Todo extends Component {
   state = {
     tasks: [],
     newTaskTitle: "",
     selectedTasks: new Set(),
+    isConfirmDialogOpen: false,
   };
   inputChange = (event) => {
     const newTaskTitle = event.target.value;
@@ -56,11 +52,9 @@ class Todo extends Component {
 
   onTaskSelect = (taskId) => {
     const selectedTasks = new Set(this.state.selectedTasks);
-    if (selectedTasks.has(taskId)) {
-      selectedTasks.delete(taskId);
-    } else {
-      selectedTasks.add(taskId);
-    }
+    selectedTasks.has(taskId)
+      ? selectedTasks.delete(taskId)
+      : selectedTasks.add(taskId);
     this.setState({
       selectedTasks,
     });
@@ -76,7 +70,15 @@ class Todo extends Component {
     this.setState({
       tasks: newTasks,
       selectedTasks: new Set(),
+      isConfirmDialogOpen: false,
     });
+  };
+
+  openConfirmDialog = () => {
+    this.setState({ isConfirmDialogOpen: true });
+  };
+  closeConfirmDialog = () => {
+    this.setState({ isConfirmDialogOpen: false });
   };
 
   render() {
@@ -113,14 +115,27 @@ class Todo extends Component {
             );
           })}
         </Row>
+
         <Button
           className={styles.deleteSelected}
           variant="danger"
-          onClick={this.deleteSelectedTasks}
+          onClick={this.openConfirmDialog}
           disabled={!this.state.selectedTasks.size}
         >
           Delete selected
         </Button>
+
+        {/* lesson67 */}
+        {/* <Row>
+          <Counter/>
+        </Row> */}
+        {this.state.isConfirmDialogOpen && (
+          <ConfirmDialog
+            tasksCount={this.state.selectedTasks.size}
+            onCancel={this.closeConfirmDialog}
+            onSubmit={this.deleteSelectedTasks}
+          />
+        )}
       </Container>
     );
   }

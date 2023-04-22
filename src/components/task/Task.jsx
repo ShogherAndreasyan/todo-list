@@ -2,6 +2,7 @@ import { Col, Button, Card, Form } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import styles from "./task.module.css";
+import { memo } from "react";
 
 function Task(props) {
   const el = props.data;
@@ -9,16 +10,23 @@ function Task(props) {
     <Col xs="12" sm="6" md="4" lg="3">
       <Card className="mt-2 mb-2">
         <Card.Body>
-        <Form.Check className={styles.selectTask} onClick={()=>props.onTaskSelect(el.id)}/>
+          <Form.Check
+            className={styles.selectTask}
+            onClick={() => props.onTaskSelect(el.id)}
+          />
           <Card.Title>{el.title}</Card.Title>
           <Card.Text>Description</Card.Text>
           <div className={styles.actionButtons}>
             <Button variant="warning">
               <FontAwesomeIcon icon={faPenToSquare} />
             </Button>
-            <Button variant="danger" className={styles.deleteButton} onClick={()=>{
-              props.onTaskDelete(el.id)
-            }}>
+            <Button
+              variant="danger"
+              className={styles.deleteButton}
+              onClick={() => {
+                props.onTaskDelete(el.id);
+              }}
+            >
               <FontAwesomeIcon icon={faTrash} />
             </Button>
           </div>
@@ -28,4 +36,4 @@ function Task(props) {
   );
 }
 
-export default Task;
+export default memo(Task);
