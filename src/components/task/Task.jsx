@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import styles from "./task.module.css";
 import { memo } from "react";
+import PropTypes from "prop-types"
 
 function Task(props) {
   const el = props.data;
@@ -12,7 +13,7 @@ function Task(props) {
         <Card.Body>
           <Form.Check
             className={styles.selectTask}
-            onClick={() => props.onTaskSelect(el.id)}
+            onClick={() => props.onTaskSelect(el._id)}
           />
           <Card.Title>{el.title}</Card.Title>
           <Card.Text>Description</Card.Text>
@@ -24,7 +25,7 @@ function Task(props) {
               variant="danger"
               className={styles.deleteButton}
               onClick={() => {
-                props.onTaskDelete(el.id);
+                props.onTaskDelete(el._id);
               }}
             >
               <FontAwesomeIcon icon={faTrash} />
@@ -34,6 +35,12 @@ function Task(props) {
       </Card>
     </Col>
   );
+}
+
+Task.propTypes = {
+  data: PropTypes.object.isRequired,
+  onTaskDelete: PropTypes.func.isRequired,
+  onTaskSelect: PropTypes.func.isRequired,
 }
 
 export default memo(Task);
