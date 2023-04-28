@@ -1,129 +1,143 @@
-import { Component } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  InputGroup,
-  Form,
-  Button,
-} from "react-bootstrap";
-import { idGenerator } from "../../utils/helpers";
+import { useState, useEffect } from "react";
+import { Container, Row, Col, Button } from "react-bootstrap";
 import Task from "../task/Task";
 import styles from "./todo.module.css";
+import ConfirmDialog from "../ConfirmDialog";
+import TaskApi from "../../api/taskApi";
+import TaskModal from "../taskModal/TaskModal";
+import { ToastContainer, toast } from "react-toastify";
 
-class Todo extends Component {
-  state = {
-    tasks: [],
-    newTaskTitle: "",
-    selectedTasks: new Set(),
-  };
-  inputChange = (event) => {
-    const newTaskTitle = event.target.value;
-    this.setState({
-      newTaskTitle,
+const taskApi = new TaskApi();
+
+function Todo() {
+  const [tasks, setTasks] = useState([]);
+  const [selectedTasks, setSelectedTasks] = useState(new Set());
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+
+  useEffect(() => {
+    taskApi.get().then((tasks) => {
+      setTasks(tasks);
     });
+  }, []);
+
+  const inputChange = (event) => {
+    // setNewTaskTitle(event.target.value);
   };
-  addNewTask = () => {
-    const trimedTitle = this.state.newTaskTitle.trim();
-    if (!trimedTitle) {
-      return;
-    }
-    const newTask = {
-      id: idGenerator(),
-      title: trimedTitle,
-    };
-    const tasks = [...this.state.tasks];
-    tasks.push(newTask);
-    this.setState({ tasks, newTaskTitle: "" });
+  const onAddNewTask = (newTask) => {
+    taskApi
+      .post(newTask)
+      .then((task) => {
+        const tasksNew = [...tasks];
+        tasksNew.push(task);
+        setTasks(tasksNew);
+        setIsAddTaskModalOpen(false);
+        toast.success("The task has been added");
+      })
+      .catch((err) => {
+        toast.error(err.message);
+      });
   };
 
-  inputKeyDown = (event) => {
+  const inputKeyDown = (event) => {
     if (event.code === "Enter") {
-      this.addNewTask();
+      onAddNewTask();
     }
   };
 
-  onTaskDelete = (taskId) => {
-    const newTasks = this.state.tasks.filter((el) => el.id !== taskId);
-    const newState = { tasks: newTasks };
-    if (this.state.selectedTasks.has(taskId)) {
-      const newSelectedTasks = new Set(this.state.selectedTasks);
-      newSelectedTasks.delete(taskId);
-      newState.selectedTasks = newSelectedTasks;
-    }
-    this.setState(newState);
-  };
-
-  onTaskSelect = (taskId) => {
-    const selectedTasks = new Set(this.state.selectedTasks);
+  const onTaskDelete = (taskId) => {
+    const newTasks = tasks.filter((el) => el._id !== taskId);
+    setTasks(newTasks);
     if (selectedTasks.has(taskId)) {
-      selectedTasks.delete(taskId);
-    } else {
-      selectedTasks.add(taskId);
+      const newSelectedTasks = new Set(selectedTasks);
+      newSelectedTasks.delete(taskId);
+      setSelectedTasks(newSelectedTasks);
     }
-    this.setState({
-      selectedTasks,
-    });
   };
 
-  deleteSelectedTasks = () => {
+  const onTaskSelect = (taskId) => {
+    const selectedTasksNew = new Set(selectedTasks);
+    selectedTasksNew.has(taskId)
+      ? selectedTasksNew.delete(taskId)
+      : selectedTasksNew.add(taskId);
+    setSelectedTasks(selectedTasksNew);
+  };
+
+  const deleteSelectedTasks = () => {
     const newTasks = [];
-    this.state.tasks.forEach((el) => {
-      if (!this.state.selectedTasks.has(el.id)) {
+    tasks.forEach((el) => {
+      if (!selectedTasks.has(el._id)) {
         newTasks.push(el);
       }
     });
-    this.setState({
-      tasks: newTasks,
-      selectedTasks: new Set(),
-    });
+
+    setTasks(newTasks);
+    setSelectedTasks(new Set());
+    setIsConfirmDialogOpen(false);
   };
 
-  render() {
-    return (
-      <Container>
-        <Row className="justify-content-center">
-          <Col xs="12" sm="8" md="6">
-            <InputGroup className="mb-3 mt-3">
-              <Form.Control
-                placeholder="Task title"
-                onChange={this.inputChange}
-                onKeyDown={this.inputKeyDown}
-                value={this.state.newTaskTitle}
-              />
-              <Button
-                variant="success"
-                onClick={this.addNewTask}
-                disabled={!this.state.newTaskTitle.trim()}
-              >
-                Add
-              </Button>
-            </InputGroup>
-          </Col>
-        </Row>
-        <Row>
-          {this.state.tasks.map((el) => {
-            return (
-              <Task
-                data={el}
-                key={el.id}
-                onTaskDelete={this.onTaskDelete}
-                onTaskSelect={this.onTaskSelect}
-              />
-            );
-          })}
-        </Row>
-        <Button
-          className={styles.deleteSelected}
-          variant="danger"
-          onClick={this.deleteSelectedTasks}
-          disabled={!this.state.selectedTasks.size}
-        >
-          Delete selected
-        </Button>
-      </Container>
-    );
-  }
+  const toggleConfirmDialog = () => {
+    setIsConfirmDialogOpen(!isConfirmDialogOpen);
+  };
+
+  return (
+    <Container>
+      <Row className="justify-content-center">
+        <Col xs="12" sm="8" md="6">
+          <Button variant="success" onClick={() => setIsAddTaskModalOpen(true)}>
+            Add a new task
+          </Button>
+        </Col>
+      </Row>
+      <Row>
+        {tasks.map((el) => {
+          return (
+            <Task
+              data={el}
+              key={el._id}
+              onTaskDelete={onTaskDelete}
+              onTaskSelect={onTaskSelect}
+            />
+          );
+        })}
+      </Row>
+
+      <Button
+        className={styles.deleteSelected}
+        variant="danger"
+        onClick={toggleConfirmDialog}
+        disabled={!selectedTasks.size}
+      >
+        Delete selected
+      </Button>
+
+      {isConfirmDialogOpen && (
+        <ConfirmDialog
+          tasksCount={selectedTasks.size}
+          onCancel={toggleConfirmDialog}
+          onSubmit={deleteSelectedTasks}
+        />
+      )}
+      {isAddTaskModalOpen && (
+        <TaskModal
+          onCancel={() => setIsAddTaskModalOpen(false)}
+          onSave={onAddNewTask}
+        />
+      )}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+    </Container>
+  );
 }
 
 export default Todo;
