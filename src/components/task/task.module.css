@@ -25,13 +25,31 @@
     overflow: hidden;
     white-space: nowrap;
 }
+.textLengthItalic{
+    text-decoration: line-through;
+    margin-top: 20px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
 
 .inProgresTask{
     height: 300px;
-    background: #c8e39e;
+    background: #b8dc7d;
+}
+
+.timedOut{
+    height: 300px;
+    background: #e49367;
 }
 
 .taskIsDone{
-    background: #eaea62;
+    color: grey;
+    font-style: italic;
+    height: 300px;
+    background: #e7e794;
 }
 
+.blueShadow{
+    box-shadow: rgba(6, 128, 144, 0.35) 15px 10px 5px;
+}
